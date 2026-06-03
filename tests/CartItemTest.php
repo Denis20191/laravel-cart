@@ -551,3 +551,20 @@ it('calculates tax via magic get', function (): void {
 
     expect($cartItem->tax)->toEqual(10.00);
 });
+
+it('computes virtual __get properties correctly', function (): void {
+    $item = CartItem::fromAttributes('1', 'Test', '', 3, 100.0, 100.0, '', '', 0, '');
+    $item->taxRate = 10; // setta manualmente per rendere i calcoli non banali
+    $item->tax = 10.0;
+
+    expect($item->priceTax)->toBe(110.0);   // 100 + (100 * 10/100)
+    expect($item->subtotal)->toBe(300.0);   // 3 * 100
+    expect($item->total)->toBe(330.0);      // 3 * 110
+    expect($item->taxTotal)->toBe(30.0);    // 10 * 3
+});
+
+it('returns null for unknown __get property', function (): void {
+    $item = CartItem::fromAttributes('1', 'Test', '', 1, 100.0, 100.0, '', '', 0, '');
+
+    expect($item->nonExistentProperty)->toBeNull();
+});
