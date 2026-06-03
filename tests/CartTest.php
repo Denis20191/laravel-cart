@@ -1426,3 +1426,20 @@ it('searchById returns null for empty cart', function (): void {
 
     expect($cart->searchById('999', ProductModel::class))->toBeNull();
 });
+
+it('applies a global coupon when rowId is null', function (): void {
+    $cart = getCart();
+    $countBefore = $cart->content()->count();
+    $cart->applyCoupon(null, 'CODE', 'fixed', 50);
+
+    expect($cart->content()->count())->toBe($countBefore + 1);
+
+    $discountItem = $cart->content()->first(
+        fn($item) => $item->name === 'discountCartItem'
+    );
+
+    expect($discountItem)->not->toBeNull();
+    expect($discountItem->appliedCoupons)->toHaveKey('CODE');
+    expect($discountItem->appliedCoupons['CODE']->couponType)->toBe('global');
+    expect($discountItem->appliedCoupons['CODE']->couponValue)->toBe(50.0);
+});
