@@ -9,6 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+ehj **Laravel 13 support**
+- Added `^13.0` to all `illuminate/*` constraints in `composer.json`.
+- Updated `orchestra/testbench` to `^8.0|^9.0|^10.0|^11.0` to cover L10/L11/L12/L13.
+- Updated `pestphp/pest` to `^3.0|^4.0` and `pestphp/pest-plugin-laravel` to `^3.0|^4.0` (pest 4 required by testbench 11 / L13).
+- CI matrix expanded: PHP 8.4/8.5 × Laravel 10/11/12/13 (L10+PHP8.5 excluded — L10 EOL).
+- All 280 tests pass on L13 + PHP 8.4/8.5 with zero code changes (no L13 breaking changes impacted this package).
+
+### Added (continued)
+
 **Coupon System (v4.1)**
 - `Cart::addCoupon(string|CartCoupon|Couponable $coupon): static` — cart-level coupon API with expiry, `minCartAmount`, and duplicate-hash validation.
 - `Cart::removeCartCoupon(string $hashOrCode): static` — remove a cart-level coupon by hash or code.

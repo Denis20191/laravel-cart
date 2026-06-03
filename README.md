@@ -13,13 +13,14 @@ A Laravel shopping cart with fiscal support. Handles VAT-inclusive pricing, Ital
 
 ## Requirements
 
-PHP 8.2 or higher is required.
+PHP 8.4 or higher is required.
 
 | Laravel | PHP   | Package |
 |---------|-------|---------|
-| 10.x    | ^8.2  | ^3.x    |
-| 11.x    | ^8.2  | ^3.x    |
-| 12.x    | ^8.2  | ^4.x    |
+| 10.x    | ^8.4  | ^3.x    |
+| 11.x    | ^8.4  | ^3.x    |
+| 12.x    | ^8.4  | ^4.x    |
+| 13.x    | ^8.4  | ^4.x    |
 
 ---
 
