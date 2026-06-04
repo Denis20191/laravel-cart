@@ -1446,6 +1446,7 @@ it('applies a global coupon when rowId is null', function (): void {
 
 //3
 it('can add a buyable to the cart', function (): void {
+    $cart = getCart();
     $buyable = new BuyableProduct(
         42,
         'Scarpe da corsa',
@@ -1460,11 +1461,11 @@ it('can add a buyable to the cart', function (): void {
         ['taglia' => '42']
     );
 
-    $this->cart->add($buyable, 2);
+    $cart->add($buyable, 2);
 
-    expect($this->cart->count())->toBe(1);
+    expect($cart->count())->toBe(1);
 
-    $cartItem = $this->cart->content()->first();
+    $cartItem = $cart->content()->first();
 
     expect($cartItem->id)->toBe(42);
     expect($cartItem->name)->toBe('Scarpe da corsa');
@@ -1482,11 +1483,12 @@ it('can add a buyable to the cart', function (): void {
 });
 
 it('associates the buyable instance on the cart item', function (): void {
-    $buyable = new BuyableProduct(7, 'Zaino');
+    
+$buyable = new BuyableProduct(7, 'Zaino');
+    $cart = getCart();
+    $cart->add($buyable, 1);
 
-    $this->cart->add($buyable, 1);
-
-    $cartItem = $this->cart->content()->first();
+    $cartItem = $cart->content()->first();
 
     expect($cartItem->model)->not->toBeNull();
     expect($cartItem->model)->toBeInstanceOf(BuyableProduct::class);
@@ -1550,7 +1552,7 @@ it('can create a cart item from an array via fromArray', function (): void {
     expect($cartItem->productFcCode)->toBe('BORSA01');
     expect($cartItem->vat)->toBe(22.0);
     expect($cartItem->urlImg)->toBe('https://example.com/borsa.jpg');
-    expect((array) $cartItem->options)->toBe(['colore' => 'nero']);
+    expect($cartItem->options->toArray())->toBe(['colore' => 'nero']);
 });
 
 it('uses Carbon::now() when createdAt and updatedAt are missing from array', function (): void {
@@ -1613,11 +1615,12 @@ it('can add a cart item to the cart via array', function (): void {
         'options' => [],
     ];
 
-    $this->cart->add($attributes, 2);
+    $cart = getCart();
+    $cart->add($attributes, 2);
 
-    expect($this->cart->count())->toBe(1);
+    expect($cart->content()->count())->toBe(1);
 
-    $cartItem = $this->cart->content()->first();
+    $cartItem = $cart->content()->first();
 
     expect($cartItem->id)->toBe(13);
     expect($cartItem->name)->toBe('Guanti');
