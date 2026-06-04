@@ -1661,3 +1661,18 @@ it('throws an exception when name is empty', function (): void {
     expect(fn() => new CartItem(1, '', 'Subtitle', 1, 10.00, 12.22, '0', '0', 2.22, 'https://example.com/img.jpg'))
         ->toThrow(InvalidArgumentException::class, 'Please supply a valid name.');
 });
+
+//8
+it('throws an exception when quantity is zero', function (): void {
+    $cartItem = new CartItem(1, 'Nome', 'Subtitle', 1, 10.00, 12.22, '0', '0', 2.22, 'https://example.com/img.jpg');
+
+    expect(fn() => $cartItem->setQuantity(0))
+        ->toThrow(InvalidArgumentException::class, 'Please supply a valid quantity.');
+});
+
+it('throws an exception when quantity is empty string', function (): void {
+    $cartItem = new CartItem(1, 'Nome', 'Subtitle', 1, 10.00, 12.22, '0', '0', 2.22, 'https://example.com/img.jpg');
+
+    expect(fn() => $cartItem->setQuantity(''))
+        ->toThrow(InvalidArgumentException::class, 'Please supply a valid quantity.');
+});
