@@ -1463,7 +1463,7 @@ it('can add a buyable to the cart', function (): void {
 
     $cart->add($buyable, 2);
 
-    expect($cart->count())->toBe(1);
+    expect($cart->content()->count())->toBe(1);
 
     $cartItem = $cart->content()->first();
 
@@ -1476,7 +1476,7 @@ it('can add a buyable to the cart', function (): void {
     expect($cartItem->vatFcCode)->toBe('VAT22');
     expect($cartItem->productFcCode)->toBe('SCARPE01');
     expect($cartItem->urlImg)->toBe('https://example.com/scarpe.jpg');
-    expect((array) $cartItem->options)->toBe(['taglia' => '42']);
+    expect($cartItem->options->toArray())->toBe(['taglia' => '42']);
 
     // La qty viene dal secondo argomento di add(), non da getQty() del Buyable
     expect($cartItem->qty)->toBe(2);
@@ -1521,7 +1521,7 @@ it('can create a cart item directly from a buyable via fromBuyable', function ()
     expect($cartItem->vatFcCode)->toBe('VAT22');
     expect($cartItem->productFcCode)->toBe('LAP001');
     expect($cartItem->urlImg)->toBe('https://example.com/laptop.jpg');
-    expect((array) $cartItem->options)->toBe(['colore' => 'silver']);
+    expect($cartItem->options->toArray())->toBe(['colore' => 'silver']);
 });
 
 //4
@@ -1652,8 +1652,8 @@ it('returns true when cart has a global coupon', function (): void {
 it('returns the sum of originalTotalPrice times qty for all items', function (): void {
     $cart = getCart();
 
-    $cart->add(1, 'Scarpe', 'Subtitle', 3, 50.00, 60.00, '0', '0', 22.0, 'https://example.com/img.jpg');
-    $cart->add(2, 'Borsa', 'Subtitle', 2, 30.00, 36.60, '0', '0', 22.0, 'https://example.com/img.jpg');
+    $cart->add(1, 'Scarpe', 'Subtitle', 3, 50.00, 60.00, 0, '0', '22.0', 'https://example.com/img.jpg');
+    $cart->add(2, 'Borsa', 'Subtitle', 2, 30.00, 36.60, 0, '0', '22.0', 'https://example.com/img.jpg');
 
     // (60.00 * 3) + (36.60 * 2) = 180.00 + 73.20 = 253.20
     expect($cart->originalTotalPrice())->toBe(253.20);
