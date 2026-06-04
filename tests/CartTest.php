@@ -1484,7 +1484,7 @@ it('can add a buyable to the cart', function (): void {
 
 it('associates the buyable instance on the cart item', function (): void {
     
-$buyable = new BuyableProduct(7, 'Zaino');
+    $buyable = new BuyableProduct(7, 'Zaino');
     $cart = getCart();
     $cart->add($buyable, 1);
 
@@ -1492,7 +1492,7 @@ $buyable = new BuyableProduct(7, 'Zaino');
 
     expect($cartItem->model)->not->toBeNull();
     expect($cartItem->model)->toBeInstanceOf(BuyableProduct::class);
-    expect($cartItem->modelFQCN)->toBe(BuyableProduct::class);
+    expect($cartItem->associatedModel)->toBe(BuyableProduct::class);
 });
 
 it('can create a cart item directly from a buyable via fromBuyable', function (): void {
@@ -1636,7 +1636,8 @@ it('returns false when cart has no coupons', function (): void {
 
 it('returns false when cart has only item coupons', function (): void {
     $cart = getCart();
-    $cart->applyCoupon('some-row-id', 'CODE', 'fixed', 10);
+    $cartItem = $cart->add(1, 'Prodotto', '', 1, 10.0, 10.0, 0, '', '', '');
+    $cart->applyCoupon($cartItem->rowId, 'CODE', 'fixed', 5.0);
 
     expect($cart->hasGlobalCoupon())->toBeFalse();
 });
