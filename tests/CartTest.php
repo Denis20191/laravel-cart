@@ -1443,3 +1443,221 @@ it('applies a global coupon when rowId is null', function (): void {
     expect($discountItem->appliedCoupons['CODE']->couponType)->toBe('global');
     expect($discountItem->appliedCoupons['CODE']->couponValue)->toBe(50.0);
 });
+
+//3
+it('can add a buyable to the cart', function (): void {
+    $buyable = new BuyableProduct(
+        42,
+        'Scarpe da corsa',
+        'Modello X',
+        1,
+        99.99,
+        121.99,
+        22.0,
+        'VAT22',
+        'SCARPE01',
+        'https://example.com/scarpe.jpg',
+        ['taglia' => '42']
+    );
+
+    $this->cart->add($buyable, 2);
+
+    expect($this->cart->count())->toBe(1);
+
+    $cartItem = $this->cart->content()->first();
+
+    expect($cartItem->id)->toBe(42);
+    expect($cartItem->name)->toBe('Scarpe da corsa');
+    expect($cartItem->subtitle)->toBe('Modello X');
+    expect($cartItem->price)->toBe(99.99);
+    expect($cartItem->totalPrice)->toBe(121.99);
+    expect($cartItem->vat)->toBe(22.0);
+    expect($cartItem->vatFcCode)->toBe('VAT22');
+    expect($cartItem->productFcCode)->toBe('SCARPE01');
+    expect($cartItem->urlImg)->toBe('https://example.com/scarpe.jpg');
+    expect((array) $cartItem->options)->toBe(['taglia' => '42']);
+
+    // La qty viene dal secondo argomento di add(), non da getQty() del Buyable
+    expect($cartItem->qty)->toBe(2);
+});
+
+it('associates the buyable instance on the cart item', function (): void {
+    $buyable = new BuyableProduct(7, 'Zaino');
+
+    $this->cart->add($buyable, 1);
+
+    $cartItem = $this->cart->content()->first();
+
+    expect($cartItem->model)->not->toBeNull();
+    expect($cartItem->model)->toBeInstanceOf(BuyableProduct::class);
+    expect($cartItem->modelFQCN)->toBe(BuyableProduct::class);
+});
+
+it('can create a cart item directly from a buyable via fromBuyable', function (): void {
+    $buyable = new BuyableProduct(
+        5,
+        'Laptop',
+        'Pro edition',
+        1,
+        1299.00,
+        1584.78,
+        22.0,
+        'VAT22',
+        'LAP001',
+        'https://example.com/laptop.jpg',
+        ['colore' => 'silver']
+    );
+
+    $cartItem = CartItem::fromBuyable($buyable);
+
+    expect($cartItem->id)->toBe(5);
+    expect($cartItem->name)->toBe('Laptop');
+    expect($cartItem->subtitle)->toBe('Pro edition');
+    expect($cartItem->price)->toBe(1299.00);
+    expect($cartItem->totalPrice)->toBe(1584.78);
+    expect($cartItem->vat)->toBe(22.0);
+    expect($cartItem->vatFcCode)->toBe('VAT22');
+    expect($cartItem->productFcCode)->toBe('LAP001');
+    expect($cartItem->urlImg)->toBe('https://example.com/laptop.jpg');
+    expect((array) $cartItem->options)->toBe(['colore' => 'silver']);
+});
+
+//4
+it('can create a cart item from an array via fromArray', function (): void {
+    $attributes = [
+        'id' => 10,
+        'name' => 'Borsa',
+        'subtitle' => 'Borsa in pelle',
+        'qty' => 3,
+        'price' => 49.99,
+        'totalPrice' => 149.97,
+        'vatFcCode' => 'VAT22',
+        'productFcCode' => 'BORSA01',
+        'vat' => 22.0,
+        'urlImg' => 'https://example.com/borsa.jpg',
+        'options' => ['colore' => 'nero'],
+    ];
+
+    $cartItem = CartItem::fromArray($attributes);
+
+    expect($cartItem->id)->toBe(10);
+    expect($cartItem->name)->toBe('Borsa');
+    expect($cartItem->subtitle)->toBe('Borsa in pelle');
+    expect($cartItem->qty)->toBe(3);
+    expect($cartItem->price)->toBe(49.99);
+    expect($cartItem->totalPrice)->toBe(149.97);
+    expect($cartItem->vatFcCode)->toBe('VAT22');
+    expect($cartItem->productFcCode)->toBe('BORSA01');
+    expect($cartItem->vat)->toBe(22.0);
+    expect($cartItem->urlImg)->toBe('https://example.com/borsa.jpg');
+    expect((array) $cartItem->options)->toBe(['colore' => 'nero']);
+});
+
+it('uses Carbon::now() when createdAt and updatedAt are missing from array', function (): void {
+    $attributes = [
+        'id' => 11,
+        'name' => 'Cintura',
+        'subtitle' => 'Cintura in cuoio',
+        'qty' => 1,
+        'price' => 19.99,
+        'totalPrice' => 19.99,
+        'vatFcCode' => 'VAT22',
+        'productFcCode' => 'CINT01',
+        'vat' => 22.0,
+        'urlImg' => 'https://example.com/cintura.jpg',
+    ];
+
+    $cartItem = CartItem::fromArray($attributes);
+
+    expect($cartItem->createdAt)->toBeInstanceOf(Carbon::class);
+    expect($cartItem->updatedAt)->toBeInstanceOf(Carbon::class);
+});
+
+it('uses provided Carbon instances for createdAt and updatedAt', function (): void {
+    $createdAt = Carbon::parse('2025-01-01 10:00:00');
+    $updatedAt = Carbon::parse('2025-06-01 12:00:00');
+
+    $attributes = [
+        'id' => 12,
+        'name' => 'Cappello',
+        'subtitle' => 'Cappello estivo',
+        'qty' => 2,
+        'price' => 29.99,
+        'totalPrice' => 59.98,
+        'vatFcCode' => 'VAT22',
+        'productFcCode' => 'CAP01',
+        'vat' => 22.0,
+        'urlImg' => 'https://example.com/cappello.jpg',
+        'createdAt' => $createdAt,
+        'updatedAt' => $updatedAt,
+    ];
+
+    $cartItem = CartItem::fromArray($attributes);
+
+    expect($cartItem->createdAt)->toEqual($createdAt);
+    expect($cartItem->updatedAt)->toEqual($updatedAt);
+});
+
+it('can add a cart item to the cart via array', function (): void {
+    $attributes = [
+        'id' => 13,
+        'name' => 'Guanti',
+        'subtitle' => 'Guanti invernali',
+        'qty' => 2,
+        'price' => 15.00,
+        'totalPrice' => 30.00,
+        'vatFcCode' => 'VAT22',
+        'productFcCode' => 'GUAN01',
+        'vat' => 22.0,
+        'urlImg' => 'https://example.com/guanti.jpg',
+        'options' => [],
+    ];
+
+    $this->cart->add($attributes, 2);
+
+    expect($this->cart->count())->toBe(1);
+
+    $cartItem = $this->cart->content()->first();
+
+    expect($cartItem->id)->toBe(13);
+    expect($cartItem->name)->toBe('Guanti');
+    expect($cartItem->qty)->toBe(2);
+});
+
+//5
+it('returns false when cart has no coupons', function (): void {
+    $cart = getCart();
+
+    expect($cart->hasGlobalCoupon())->toBeFalse();
+});
+
+it('returns false when cart has only item coupons', function (): void {
+    $cart = getCart();
+    $cart->applyCoupon('some-row-id', 'CODE', 'fixed', 10);
+
+    expect($cart->hasGlobalCoupon())->toBeFalse();
+});
+
+it('returns true when cart has a global coupon', function (): void {
+    $cart = getCart();
+    $cart->applyCoupon(null, 'GLOBAL10', 'fixed', 10);
+
+    expect($cart->hasGlobalCoupon())->toBeTrue();
+});
+
+//6
+it('returns the sum of originalTotalPrice times qty for all items', function (): void {
+    $cart = getCart();
+
+    $cart->add(1, 'Scarpe', 'Subtitle', 3, 50.00, 60.00, '0', '0', 22.0, 'https://example.com/img.jpg');
+    $cart->add(2, 'Borsa', 'Subtitle', 2, 30.00, 36.60, '0', '0', 22.0, 'https://example.com/img.jpg');
+
+    // (60.00 * 3) + (36.60 * 2) = 180.00 + 73.20 = 253.20
+    expect($cart->originalTotalPrice())->toBe(253.20);
+});
+
+//7
+it('throws an exception when name is empty', function (): void {
+    expect(fn() => new CartItem(1, '', 'Subtitle', 1, 10.00, 12.22, '0', '0', 2.22, 'https://example.com/img.jpg'))
+        ->toThrow(InvalidArgumentException::class, 'Please supply a valid name.');
+});
