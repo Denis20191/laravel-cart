@@ -1680,3 +1680,151 @@ it('throws an exception when quantity is empty string', function (): void {
     expect(fn() => $cartItem->setQuantity(''))
         ->toThrow(InvalidArgumentException::class, 'Please supply a valid quantity.');
 });
+
+it('detaches coupon correctly', function (): void {
+    $cart = getCart();
+    $cart->add(1, 'Nome', 'Subtitle', 1, 100, 120, 0, '0', '20', 'https://example.com/img.jpg');
+    $cart->applyCoupon(null, 'GLOBAL10', 'fixed', 10);
+
+    expect($cart->total())->toEqual(110);
+
+    $discountItem = $cart->content()->first(
+        fn($item) => $item->name === 'discountCartItem'
+    );
+
+    $cart->detachCoupon($discountItem->rowId, 'GLOBAL10');
+
+    expect($cart->total())->toEqual(120);
+});
+
+it('adds new items with sync', function (): void {
+    $cart = getCart();
+    
+    $cart->sync([
+        [
+            'id' => 1,
+            'name' => 'Prodotto',
+            'subtitle' => '',
+            'qty' => 2,
+            'price' => 10.0,
+            'totalPrice' => 20.0,
+            'vat' => 0.0,
+        ],
+    ]);
+
+    expect($cart->content()->count())->toBe(1);
+    expect($cart->content()->first()->id)->toBe(1);
+    expect($cart->content()->first()->qty)->toBe(2);
+});
+
+it('updates quantity of existing items with sync', function (): void {
+    $cart = getCart();
+    $cart->add(1, 'Prodotto', '', 1, 10.0, 10.0, 0, '0', '0', 'https://example.com/img.jpg');
+
+    $cart->sync([
+        [
+            'id' => 1,
+            'name' => 'Prodotto',
+            'subtitle' => '',
+            'qty' => 5,
+            'price' => 10.0,
+            'totalPrice' => 50.0,
+            'vat' => 0.0,
+        ],
+    ]);
+
+    expect($cart->content()->count())->toBe(1);
+    expect($cart->content()->first()->id)->toBe(1);
+    expect($cart->content()->first()->qty)->toBe(5);
+});
+
+it('removes items not in the new array with sync', function (): void {
+    $cart = getCart();
+    $cart->add(1, 'Prodotto', '', 1, 10.0, 10.0, 0, '0', '0', 'https://example.com/img.jpg');
+    $cart->add(2, 'Altro Prodotto', '', 1, 20.0, 20.0, 0, '0', '0', 'https://example.com/img.jpg');
+
+    $cart->sync([
+        [
+            'id' => 1,
+            'name' => 'Prodotto',
+            'subtitle' => '',
+            'qty' => 2,
+            'price' => 10.0,
+            'totalPrice' => 20.0,
+            'vat' => 0.0,
+        ],
+    ]);
+
+    expect($cart->content()->count())->toBe(1);
+    expect($cart->content()->first()->id)->toBe(1);
+});
+
+it('can tell if an item is already added', function (): void {
+    $cart = getCart();
+    $cart->add(1, 'Prodotto', '', 1, 10.0, 10.0, 0, '0', '0', 'https://example.com/img.jpg')->associate(ProductModel::class);;
+
+    expect($cart->isAlreadyAdded(1, ProductModel::class))->toBe(true);
+});
+
+it('can tell if an item is not already added', function (): void {
+    $cart = getCart();
+    $cart->add(1, 'Prodotto', '', 1, 10.0, 10.0, 0, '0', '0', 'https://example.com/img.jpg')->associate(ProductModel::class);;
+
+    expect($cart->isAlreadyAdded(2, ProductModel::class))->toBe(false);
+});
+
+it('can tell if a cupon is already applied', function (): void {
+    $cart = getCart();
+    $cart->applyCoupon(null, 'GLOBAL10', 'fixed', 10);
+
+    expect($cart->hasCoupons())->toBe(true);
+});
+
+it('can get a specified cupon', function (): void {
+    $cart = getCart();
+    $cart->applyCoupon(null, 'GLOBAL10', 'fixed', 10);
+
+    $coupon = $cart->getCoupon('GLOBAL10');
+
+    expect($coupon)->not->toBeNull();
+    expect($coupon->couponCode)->toBe('GLOBAL10');
+    expect($coupon->couponType)->toBe('global');
+    expect($coupon->couponValue)->toBe(10.0);
+});
+
+it('returns null for a non existing coupon', function (): void {
+    $cart = getCart();
+
+    expect($cart->getCoupon('NONEXISTENT'))->toBeNull();
+});
+
+it('can find an item with a specified attribute', function (): void {
+    $cart = getCart();
+    $cart->add(1, 'Prodotto', '', 1, 10.0, 10.0, 0, '0', '0', 'https://example.com/img.jpg', null, null, ['size' => 'L']);
+
+    $found = $cart->where('name', 'Prodotto')->first();
+
+    expect($found)->not->toBeNull();
+    expect($found->id)->toBe(1);
+});
+
+it('returns null when searching for an item with a non existing attribute', function (): void {
+    $cart = getCart();
+    $cart->add(1, 'Prodotto', '', 1, 10.0, 10.0, 0, '0', '0', 'https://example.com/img.jpg', null, null, ['size' => 'L']);
+
+    $found = $cart->where('name', 'NonExistent')->first();
+
+    expect($found)->toBeNull();
+});
+
+it('can tell if the cart is empty', function (): void {
+    $cart = getCart();
+
+    expect($cart->isEmpty())->toBe(true);
+    expect($cart->isNotEmpty())->toBe(false);
+
+    $cart->add(1, 'Prodotto', '', 1, 10.0, 10.0, 0, '0', '0', 'https://example.com/img.jpg');
+
+    expect($cart->isEmpty())->toBe(false);
+    expect($cart->isNotEmpty())->toBe(true);
+});
